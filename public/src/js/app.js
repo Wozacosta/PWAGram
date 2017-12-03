@@ -12,7 +12,7 @@ if (!window.Promise){
 }
 
 if ('serviceWorker' in navigator) {
-  console.log(`serviceWorkers supported in navigator`, navigator);
+  // console.log(`serviceWorkers supported in navigator`, navigator);
   navigator.serviceWorker
     .register('/sw.js')
     .then(() => {
