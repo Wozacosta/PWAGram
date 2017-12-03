@@ -1,8 +1,11 @@
 // lifecycle events
+const CACHE_STATIC_NAME = 'static-v4';
+const CACHE_DYNAMIC_NAME = 'dynamic-v2';
+
 self.addEventListener('install', event => {
   console.log('[Service Worker] Installing Service worker ...', event);
   event.waitUntil(
-    caches.open('static').then(cache => {
+    caches.open(CACHE_STATIC_NAME).then(cache => {
       // cache = created cache
       console.log('[Service Worker] Precaching App Shell');
       // methods : https://developer.mozilla.org/en-US/docs/Web/API/Cache
@@ -32,13 +35,25 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  console.log('[Service Worker] activating Service worker ...', event);
+  // here = safe to update the cache (we're not in a running application anymore)
+  event.waitUntil(
+    caches.keys()
+      .then((keyList) => {
+        return Promise.all(keyList.map((key) => {
+          if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME){
+            console.log('[Service Worker] Removing old cache');
+            return caches.delete(key);
+          }
+        })); // takes array of promise and waits for all of them to finish
+      })
+  )
+  console.log('[Service Worker] activating Service worker ...');
   return self.clients.claim(); // ensures that sw are activated correctly
 });
 
 // non-lifecycle events
 self.addEventListener('fetch', event => {
-  console.log(`[Serivce Worker] fetch event for ${event.request.url}`, event);
+  // console.log(`[Serivce Worker] fetch event for ${event.request.url}`);
   // event.respondWith('<h1>Hi</h1>'); override response
 
   // fetch data with cache if available
@@ -48,15 +63,17 @@ self.addEventListener('fetch', event => {
       .then(response => {
         // null if not in cache
         if (response) {
-          console.log(`request for ${event.request.url} in cache !`);
+          // console.log(`request for ${event.request.url} in cache !`);
           return response; // returning value from the cache
         } else {
           return fetch(event.request).then(res => {
-            return caches.open('dynamic').then(cache => {
+            return caches.open(CACHE_DYNAMIC_NAME).then(cache => {
               cache.put(event.request.url, res.clone()); // .clone because res will be consumed
               return res;
             });
-          });
+          }).catch(err => {
+            console.error('dynamic fetch then cache', err);
+          })
         }
       })
       .catch(err => {
