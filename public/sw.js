@@ -11,6 +11,7 @@ self.addEventListener('activate', (event) => {
 
 // non-lifecycle events
 self.addEventListener('fetch', (event) => {
-  console.log(`[Serivce Worker] fetch event for ${event.request.url}`, event);
-  // event.respondWith('<h1>Hi</h1>');
+  // console.log(`[Serivce Worker] fetch event for ${event.request.url}`, event);
+  // event.respondWith('<h1>Hi</h1>'); override response
+  // event.respondWith(fetch(event.request));
 });

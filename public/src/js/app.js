@@ -5,6 +5,8 @@
   we need to be able to register the sw anywhere.
  */
 
+let deferredPrompt;
+
 if ('serviceWorker' in navigator) {
   console.log(`serviceWorkers supported in navigator`, navigator);
   navigator.serviceWorker
@@ -15,3 +17,10 @@ if ('serviceWorker' in navigator) {
   // tells the browser that support serviceWorkers that sw.js should be registered (and treated as
   // a background process
 }
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  console.log('beforeinstallprompt fired');
+  event.preventDefault();
+  deferredPrompt = event;
+  return false;
+});
