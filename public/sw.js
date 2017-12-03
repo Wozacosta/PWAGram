@@ -4,6 +4,6 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activating Service worker ...', event);
+  console.log('[Service Worker] activating Service worker ...', event);
   return self.clients.claim(); // ensures that sw are activated correctly
 });
