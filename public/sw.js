@@ -13,5 +13,5 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   // console.log(`[Serivce Worker] fetch event for ${event.request.url}`, event);
   // event.respondWith('<h1>Hi</h1>'); override response
-  // event.respondWith(fetch(event.request));
+  event.respondWith(fetch(event.request));
 });

@@ -109,6 +109,11 @@
   </div>
 </div>
 <script defer src="/src/js/material.min.js"></script>
+<!--Polyfills for promise and fetch
+fetch polyfill uses promise polyfill so we have
+to import promise.js before fetch.js-->
+<script src="/src/js/promise.js"></script>
+<script src="/src/js/fetch.js"></script>
 <script src="/src/js/app.js"></script>
 <script src="/src/js/feed.js"></script>
 </body>

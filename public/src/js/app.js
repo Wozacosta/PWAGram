@@ -7,12 +7,19 @@
 
 let deferredPrompt;
 
+if (!window.Promise){
+  window.Promise = Promise;
+}
+
 if ('serviceWorker' in navigator) {
   console.log(`serviceWorkers supported in navigator`, navigator);
   navigator.serviceWorker
     .register('/sw.js')
     .then(() => {
       console.log('Service Worker registered !');
+    })
+    .catch((err) => {
+      console.error(err);
     })
   // tells the browser that support serviceWorkers that sw.js should be registered (and treated as
   // a background process
