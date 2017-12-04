@@ -1,12 +1,18 @@
 // lifecycle events
-const CACHE_STATIC_NAME = 'static-v4';
+const CACHE_STATIC_NAME = 'static-v7';
 const CACHE_DYNAMIC_NAME = 'dynamic-v2';
 
 self.addEventListener('install', event => {
   console.log('[Service Worker] Installing Service worker ...', event);
-  event.waitUntil(
+  event.waitUntil( // this ensures that the service worker will not install until the code inside waitUntil() has successfully occurred.
     caches.open(CACHE_STATIC_NAME).then(cache => {
-      // cache = created cache
+      // we use the caches.open() method to create a new cache called v1, which will be version 1 of our site resources cache.
+      // This returns a promise for a created cache; once resolved,
+      // we then call a function that calls addAll() on the created cache,
+      // which for its parameter takes an array of origin-relative URLs to all the resources you want to cache.
+
+      //If the promise is rejected, the install fails, and the worker won’t do anything.
+      // This is ok, as you can fix your code and then try again the next time registration occurs.
       console.log('[Service Worker] Precaching App Shell');
       // methods : https://developer.mozilla.org/en-US/docs/Web/API/Cache
       // match : see if our cache has a resource
@@ -68,7 +74,12 @@ self.addEventListener('fetch', event => {
         } else {
           return fetch(event.request).then(res => {
             return caches.open(CACHE_DYNAMIC_NAME).then(cache => {
-              cache.put(event.request.url, res.clone()); // .clone because res will be consumed
+              cache.put(event.request.url, res.clone()); // Cloning the response is necessary because request and response streams can only be read once.
+              /*
+                 In order to return the response to the browser and put it in the cache we have to clone it.
+                 So the original gets returned to the browser and the clone gets sent to the cache.
+                  They are each read once.
+               */
               return res;
             });
           }).catch(err => {
@@ -81,3 +92,6 @@ self.addEventListener('fetch', event => {
       })
   );
 });
+
+
+// https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers
