@@ -79,9 +79,9 @@ function createCard(data) {
 function updateUI(posts){
   clearCards();
   console.log(`in update, posts = `, posts);
-  Object.keys(posts).forEach((post) => {
-    console.log(`here post = `, posts[post]);
-    createCard(posts[post]);
+  posts.forEach((post) => {
+    console.log(`here post = `, post);
+    createCard(post);
   })
 }
 
@@ -95,7 +95,8 @@ fetch(URL)
   .then((data) => {
     networkDataReceived = true;
     console.log('from web ', data);
-    updateUI(data);
+    let dataArray = Object.keys(data).map((key) => data[key]);
+    updateUI(dataArray);
   });
 
 if ('caches' in window){
@@ -107,7 +108,8 @@ if ('caches' in window){
     }).then((data) => {
       console.log('from cache ', data);
       if (!networkDataReceived && typeof data !== 'undefined') {
-        updateUI(data);
+        let dataArray = Object.keys(data).map((key) => data[key]);
+        updateUI(dataArray);
       }
   })
 }

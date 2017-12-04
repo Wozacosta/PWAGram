@@ -1,5 +1,17 @@
+/*
+synchronously imports one or more scripts into the worker's scope.
+
+If you had some functionality written in a separate script called foo.js that you wanted to use inside worker.js, you could import it using the following line:
+importScripts('foo.js');
+
+importScripts() and self.importScripts() are effectively equivalent
+ */
+
+// https://github.com/jakearchibald/idb
+importScripts('/src/js/idb.js');
+
 // lifecycle events
-const CACHE_STATIC_NAME = 'static-v16';
+const CACHE_STATIC_NAME = 'static-v17';
 const CACHE_DYNAMIC_NAME = 'dynamic-v7';
 const STATIC_FILES = [
   '/',
@@ -7,6 +19,7 @@ const STATIC_FILES = [
   '/offline.html',
   '/src/js/app.js',
   '/src/js/feed.js',
+  '/src/js/idb.js',
   '/src/js/promise.js', // no value in storing polyfills here, browser that needs them won't be able to access cache anyway
   '/src/js/fetch.js', // still useful for performance reason to cache them on new browsers
   '/src/js/material.min.js',
@@ -17,6 +30,13 @@ const STATIC_FILES = [
   'https://fonts.googleapis.com/icon?family=Material+Icons', // remote servers need to have cross-origin access enabled
   'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css',
 ];
+// idb : This is your entry point to the API. It's exposed to the global scope unless you're using a module system
+// idb.open(name, version, upgradeCallback)
+let dbPromise = idb.open('post-store', 1, (db) => {
+  if (!db.objectStoreNames.contains('posts')){
+    db.createObjectStore('posts', {keyPath: 'id'});
+  }
+});
 
 function trimCache(cacheName, maxItems) {
   let cacheToTrim = null;
@@ -139,15 +159,25 @@ self.addEventListener('fetch', event => {
     // Useful when you need to fetch the latest version all the time
     console.log(`first if in fecth event listener :)`);
     event.respondWith(
-      caches.open(CACHE_DYNAMIC_NAME)
-        .then((cache) => {
-          return fetch(event.request)
+      fetch(event.request)
             .then((res) => {
-              // trimCache(CACHE_DYNAMIC_NAME, 3);
-              cache.put(event.request.url, res.clone());
+              let clonedRes = res.clone();
+
+              clonedRes.json()
+                .then((data) => {
+                    let dataArray = Object.keys(data).map((k) => data[k]);
+                    for (let key in data){
+                      dbPromise
+                        .then((db) => {
+                          let tx = db.transaction('posts', 'readwrite'); // readonly
+                          let store = tx.objectStore('posts');
+                          store.put(data[key]);
+                          return tx.complete;
+                        })
+                    }
+                })
               return res;
             })
-        })
     );
   }
   // else if (new RegExp('\\b' + STATIC_FILES.join('\\b|\\b') + '\\b').test(event.request.url)) {
