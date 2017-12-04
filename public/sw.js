@@ -1,6 +1,6 @@
 // lifecycle events
-const CACHE_STATIC_NAME = 'static-v7';
-const CACHE_DYNAMIC_NAME = 'dynamic-v2';
+const CACHE_STATIC_NAME = 'static-v12';
+const CACHE_DYNAMIC_NAME = 'dynamic-v6';
 
 self.addEventListener('install', event => {
   console.log('[Service Worker] Installing Service worker ...', event);
@@ -23,6 +23,7 @@ self.addEventListener('install', event => {
       cache.addAll([
         '/',
         '/index.html',
+        '/offline.html',
         '/src/js/app.js',
         '/src/js/feed.js',
         '/src/js/promise.js', // no value in storing polyfills here, browser that needs them won't be able to access cache anyway
@@ -84,11 +85,16 @@ self.addEventListener('fetch', event => {
             });
           }).catch(err => {
             console.error('dynamic fetch then cache', err);
+            return caches.open(CACHE_STATIC_NAME)
+              .then((cache) => {
+                return cache.match('/offline.html');
+              })
           })
         }
       })
       .catch(err => {
-        console.error(err);
+        console.error('Error in respondwith match', err);
+
       })
   );
 });
