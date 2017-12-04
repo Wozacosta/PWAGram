@@ -1,5 +1,5 @@
 // lifecycle events
-const CACHE_STATIC_NAME = 'static-v12';
+const CACHE_STATIC_NAME = 'static-v14';
 const CACHE_DYNAMIC_NAME = 'dynamic-v6';
 
 self.addEventListener('install', event => {
