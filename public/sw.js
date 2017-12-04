@@ -1,5 +1,5 @@
 // lifecycle events
-const CACHE_STATIC_NAME = 'static-v14';
+const CACHE_STATIC_NAME = 'static-v15';
 const CACHE_DYNAMIC_NAME = 'dynamic-v6';
 
 self.addEventListener('install', event => {
@@ -58,6 +58,7 @@ self.addEventListener('activate', event => {
   return self.clients.claim(); // ensures that sw are activated correctly
 });
 
+/*
 // non-lifecycle events
 self.addEventListener('fetch', event => {
   // console.log(`[Serivce Worker] fetch event for ${event.request.url}`);
@@ -76,11 +77,11 @@ self.addEventListener('fetch', event => {
           return fetch(event.request).then(res => {
             return caches.open(CACHE_DYNAMIC_NAME).then(cache => {
               cache.put(event.request.url, res.clone()); // Cloning the response is necessary because request and response streams can only be read once.
-              /*
+              /!*
                  In order to return the response to the browser and put it in the cache we have to clone it.
                  So the original gets returned to the browser and the clone gets sent to the cache.
                   They are each read once.
-               */
+               *!/
               return res;
             });
           }).catch(err => {
@@ -98,6 +99,57 @@ self.addEventListener('fetch', event => {
       })
   );
 });
+*/
+
+// Reach out to cache first
+// if here, return response
+// else, store response in cache AND return response
+self.addEventListener('fetch', event => {
+  let url = 'https://httpbin.org/get';
+
+  if (event.request.url.indexOf(url) > -1){ // Cache then Network strategy
+    // Useful when you need to fetch the latest version all the time
+    event.respondWith(
+      caches.open(CACHE_DYNAMIC_NAME)
+        .then((cache) => {
+          return fetch(event.request)
+            .then((res) => {
+              cache.put(event.request.url, res.clone());
+              return res;
+            })
+        })
+    );
+  }else { // Cache with Network fallback strategy
+    event.respondWith(
+      caches
+        .match(event.request)
+        .then(response => {
+          if (response) {
+            return response; // returning value from the cache
+          } else {
+            return fetch(event.request).then(res => {
+              return caches.open(CACHE_DYNAMIC_NAME).then(cache => {
+                cache.put(event.request.url, res.clone()); // Cloning the response is necessary because request and response streams can only be read once.
+                return res;
+              });
+            }).catch(err => {
+              console.error('dynamic fetch then cache', err);
+              return caches.open(CACHE_STATIC_NAME)
+                .then((cache) => {
+                  return cache.match('/offline.html');
+                })
+            })
+          }
+        })
+        .catch(err => {
+          console.error('Error in respondwith match', err);
+
+        })
+    )
+  }
+});
+
+
 
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers
