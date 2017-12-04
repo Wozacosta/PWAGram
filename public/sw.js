@@ -18,6 +18,20 @@ const STATIC_FILES = [
   'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css',
 ];
 
+function trimCache(cacheName, maxItems) {
+  let cacheToTrim = null;
+  caches.open(cacheName)
+    .then((cache) => {
+      cacheToTrim = cache;
+      return cache.keys()
+    })
+    .then((keys) => {
+      if (keys.length > maxItems){
+        cacheToTrim.delete(keys[0])
+          .then(trimCache(cacheName, maxItems));
+      }
+    });
+}
 
 self.addEventListener('install', event => {
   console.log('[Service Worker] Installing Service worker ...', event);
@@ -128,6 +142,7 @@ self.addEventListener('fetch', event => {
         .then((cache) => {
           return fetch(event.request)
             .then((res) => {
+              // trimCache(CACHE_DYNAMIC_NAME, 3);
               cache.put(event.request.url, res.clone());
               return res;
             })
@@ -153,6 +168,7 @@ self.addEventListener('fetch', event => {
           } else {
             return fetch(event.request).then(res => {
               return caches.open(CACHE_DYNAMIC_NAME).then(cache => {
+                // trimCache(CACHE_DYNAMIC_NAME, 3);
                 cache.put(event.request.url, res.clone()); // Cloning the response is necessary because request and response streams can only be read once.
                 return res;
               });
