@@ -136,7 +136,9 @@ self.addEventListener('fetch', event => {
               console.error('dynamic fetch then cache', err);
               return caches.open(CACHE_STATIC_NAME)
                 .then((cache) => {
-                  return cache.match('/offline.html');
+                  if (event.request.url.indexOf('/help') > -1){
+                    return cache.match('/offline.html');
+                  }
                 })
             })
           }
