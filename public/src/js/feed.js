@@ -45,22 +45,22 @@ function clearCards() {
   }
 }
 
-function createCard() {
+function createCard(data) {
   var cardWrapper = document.createElement('div');
   cardWrapper.className = 'shared-moment-card mdl-card mdl-shadow--2dp';
   var cardTitle = document.createElement('div');
   cardTitle.className = 'mdl-card__title';
-  cardTitle.style.backgroundImage = 'url("/src/images/sf-boat.jpg")';
+  cardTitle.style.backgroundImage = `url("${data.image}")`;
   cardTitle.style.backgroundSize = 'cover';
   cardTitle.style.height = '200px'; // 180px original
   cardWrapper.appendChild(cardTitle);
   var cardTitleTextElement = document.createElement('h2');
   cardTitleTextElement.className = 'mdl-card__title-text';
-  cardTitleTextElement.textContent = 'San Francisco Trip';
+  cardTitleTextElement.textContent = data.title;
   cardTitle.appendChild(cardTitleTextElement);
   var cardSupportingText = document.createElement('div');
   cardSupportingText.className = 'mdl-card__supporting-text';
-  cardSupportingText.textContent = 'In San Francisco';
+  cardSupportingText.textContent = data.location;
   cardSupportingText.style.textAlign = 'center';
 
   /*
@@ -76,18 +76,26 @@ function createCard() {
   sharedMomentsArea.appendChild(cardWrapper);
 }
 
-const URL = 'https://httpbin.org/get';
+function updateUI(posts){
+  clearCards();
+  console.log(`in update, posts = `, posts);
+  Object.keys(posts).forEach((post) => {
+    console.log(`here post = `, posts[post]);
+    createCard(posts[post]);
+  })
+}
+
+const URL = 'https://pwagram-882f7.firebaseio.com/posts.json';
 let networkDataReceived = false;
 
-fetch('https://httpbin.org/get')
-  .then(function(res) {
+fetch(URL)
+  .then((res) => {
     return res.json();
   })
-  .then(function(data) {
+  .then((data) => {
     networkDataReceived = true;
     console.log('from web ', data);
-    clearCards();
-    createCard();
+    updateUI(data);
   });
 
 if ('caches' in window){
@@ -98,9 +106,8 @@ if ('caches' in window){
       }
     }).then((data) => {
       console.log('from cache ', data);
-      if (!networkDataReceived) {
-        clearCards();
-        createCard();
+      if (!networkDataReceived && typeof data !== 'undefined') {
+        updateUI(data);
       }
   })
 }

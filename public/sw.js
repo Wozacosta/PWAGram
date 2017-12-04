@@ -132,11 +132,12 @@ function isInArray(string, array) {
 // if here, return response
 // else, store response in cache AND return response
 self.addEventListener('fetch', event => {
-  let url = 'https://httpbin.org/get';
+  let url = 'https://pwagram-882f7.firebaseio.com/posts';
   console.log(`url = ${event.request.url}`);
 
   if (event.request.url.indexOf(url) > -1){ // First Cache then Network strategy
     // Useful when you need to fetch the latest version all the time
+    console.log(`first if in fecth event listener :)`);
     event.respondWith(
       caches.open(CACHE_DYNAMIC_NAME)
         .then((cache) => {
@@ -152,8 +153,8 @@ self.addEventListener('fetch', event => {
   // else if (new RegExp('\\b' + STATIC_FILES.join('\\b|\\b') + '\\b').test(event.request.url)) {
   else if (isInArray(event.request.url, STATIC_FILES)) { //STATIC_FILES.some((fileName) =>  fileName.indexOf(event.request.url) > -1)) {
     // CACHE ONLY strategy for static files
-    console.log(STATIC_FILES);
-    console.log(`cache only strategy for ${event.request.url}`);
+    // console.log(STATIC_FILES);
+    // console.log(`cache only strategy for ${event.request.url}`);
     event.respondWith(
       caches.match(event.request)
     );
