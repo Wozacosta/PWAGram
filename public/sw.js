@@ -103,6 +103,17 @@ self.addEventListener('fetch', event => {
 });
 */
 
+function isInArray(string, array) {
+  var cachePath;
+  if (string.indexOf(self.origin) === 0) { // request targets domain where we serve the page from (i.e. NOT a CDN)
+    console.log('matched ', string);
+    cachePath = string.substring(self.origin.length); // take the part of the URL AFTER the domain (e.g. after localhost:8080)
+  } else {
+    cachePath = string; // store the full request (for CDNs)
+  }
+  return array.indexOf(cachePath) > -1;
+}
+
 // Reach out to cache first
 // if here, return response
 // else, store response in cache AND return response
@@ -124,7 +135,7 @@ self.addEventListener('fetch', event => {
     );
   }
   // else if (new RegExp('\\b' + STATIC_FILES.join('\\b|\\b') + '\\b').test(event.request.url)) {
-  else if (STATIC_FILES.some((fileName) =>  fileName.indexOf(event.request.url) > -1)) {
+  else if (isInArray(event.request.url, STATIC_FILES)) { //STATIC_FILES.some((fileName) =>  fileName.indexOf(event.request.url) > -1)) {
     // CACHE ONLY strategy for static files
     console.log(STATIC_FILES);
     console.log(`cache only strategy for ${event.request.url}`);
@@ -149,7 +160,8 @@ self.addEventListener('fetch', event => {
               console.error('dynamic fetch then cache', err);
               return caches.open(CACHE_STATIC_NAME)
                 .then((cache) => {
-                  if (event.request.url.indexOf('/help') > -1){
+                  // if (event.request.url.indexOf('/help') > -1){
+                  if (event.request.headers.get('accept').includes('text/html')){
                     return cache.match('/offline.html');
                   }
                 })
