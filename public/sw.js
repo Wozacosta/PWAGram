@@ -12,7 +12,7 @@ importScripts('/src/js/idb.js');
 importScripts('/src/js/utility.js');
 
 // lifecycle events
-const CACHE_STATIC_NAME = 'static-v17';
+const CACHE_STATIC_NAME = 'static-v18';
 const CACHE_DYNAMIC_NAME = 'dynamic-v7';
 const STATIC_FILES = [
   '/',
@@ -88,7 +88,7 @@ function isInArray(string, array) {
 
 self.addEventListener('fetch', event => {
   let url = 'https://pwagram-882f7.firebaseio.com/posts';
-  console.log(`url = ${event.request.url}`);
+  // console.log(`url = ${event.request.url}`);
 
   if (event.request.url.indexOf(url) > -1){ // First Cache then Network strategy
     // Useful when you need to fetch the latest version all the time

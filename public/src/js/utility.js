@@ -8,11 +8,20 @@ let dbPromise = idb.open('post-store', 1, (db) => {
 
 
 function writeData(st, data) {
-  dbPromise
+  return dbPromise
     .then((db) => {
-      let tx = db.transaction(st, 'readwrite'); // readonly
+      let tx = db.transaction(st, 'readwrite');
       let store = tx.objectStore(st);
       store.put(data);
       return tx.complete;
+    })
+}
+
+function readAllData(st) {
+  return dbPromise
+    .then( (db) => {
+      let tx = db.transaction(st, 'readonly');
+      let store = tx.objectStore(st);
+      return store.getAll();
     })
 }

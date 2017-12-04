@@ -99,19 +99,14 @@ fetch(URL)
     updateUI(dataArray);
   });
 
-if ('caches' in window){
-  caches.match(URL)
-    .then((response) => {
-      if (response) {
-        return response.json();
+if ('indexedDB' in window){
+  readAllData('posts')
+    .then((data) => {
+      if (!networkDataReceived){ // if we did receive network data, we don't want to overwrite it with the cache
+        console.log('From indexedDB cache ', data);
+        updateUI(data);
       }
-    }).then((data) => {
-      console.log('from cache ', data);
-      if (!networkDataReceived && typeof data !== 'undefined') {
-        let dataArray = Object.keys(data).map((key) => data[key]);
-        updateUI(dataArray);
-      }
-  })
+    })
 }
 
 
