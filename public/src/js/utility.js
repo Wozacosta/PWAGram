@@ -13,7 +13,7 @@ function writeData(st, data) {
       let tx = db.transaction(st, 'readwrite');
       let store = tx.objectStore(st);
       store.put(data);
-      return tx.complete;
+      return tx.complete; // must return on every write operation to make sure that the DB integrity is there
     })
 }
 
@@ -24,4 +24,14 @@ function readAllData(st) {
       let store = tx.objectStore(st);
       return store.getAll();
     })
+}
+
+function clearAllData(st) {
+  return dbPromise
+    .then((db) => {
+      let tx = db.transaction(st, 'readwrite');
+      let store = tx.objectStore(st);
+      store.clear();
+      return tx.complete;
+    });
 }

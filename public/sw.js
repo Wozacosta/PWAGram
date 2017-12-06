@@ -12,7 +12,7 @@ importScripts('/src/js/idb.js');
 importScripts('/src/js/utility.js');
 
 // lifecycle events
-const CACHE_STATIC_NAME = 'static-v18';
+const CACHE_STATIC_NAME = 'static-v19';
 const CACHE_DYNAMIC_NAME = 'dynamic-v7';
 const STATIC_FILES = [
   '/',
@@ -32,25 +32,25 @@ const STATIC_FILES = [
   'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css',
 ];
 
-
 function trimCache(cacheName, maxItems) {
   let cacheToTrim = null;
-  caches.open(cacheName)
-    .then((cache) => {
+  caches
+    .open(cacheName)
+    .then(cache => {
       cacheToTrim = cache;
-      return cache.keys()
+      return cache.keys();
     })
-    .then((keys) => {
-      if (keys.length > maxItems){
-        cacheToTrim.delete(keys[0])
-          .then(trimCache(cacheName, maxItems));
+    .then(keys => {
+      if (keys.length > maxItems) {
+        cacheToTrim.delete(keys[0]).then(trimCache(cacheName, maxItems));
       }
     });
 }
 
 self.addEventListener('install', event => {
   console.log('[Service Worker] Installing Service worker ...', event);
-  event.waitUntil( // this ensures that the service worker will not install until the code inside waitUntil() has successfully occurred.
+  event.waitUntil(
+    // this ensures that the service worker will not install until the code inside waitUntil() has successfully occurred.
     caches.open(CACHE_STATIC_NAME).then(cache => {
       console.log('[Service Worker] Precaching App Shell');
       cache.addAll(STATIC_FILES);
@@ -58,26 +58,28 @@ self.addEventListener('install', event => {
   );
 });
 
-self.addEventListener('activate', event => { // here = safe to update the cache (we're not in a running application anymore)
+self.addEventListener('activate', event => {
+  // here = safe to update the cache (we're not in a running application anymore)
   event.waitUntil(
-    caches.keys()
-      .then((keyList) => {
-        return Promise.all(keyList.map((key) => {
-          if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME){
+    caches.keys().then(keyList => {
+      return Promise.all(
+        keyList.map(key => {
+          if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME) {
             console.log('[Service Worker] Removing old cache');
             return caches.delete(key);
           }
-        }));
-      })
-  )
+        })
+      );
+    })
+  );
   console.log('[Service Worker] ACTIVATING');
   return self.clients.claim(); // ensures that sw are activated correctly
 });
 
-
 function isInArray(string, array) {
   let cachePath;
-  if (string.indexOf(self.origin) === 0) { // request targets domain where we serve the page from (i.e. NOT a CDN)
+  if (string.indexOf(self.origin) === 0) {
+    // request targets domain where we serve the page from (i.e. NOT a CDN)
     console.log('matched ', string);
     cachePath = string.substring(self.origin.length); // take the part of the URL AFTER the domain (e.g. after localhost:8080)
   } else {
@@ -90,31 +92,31 @@ self.addEventListener('fetch', event => {
   let url = 'https://pwagram-882f7.firebaseio.com/posts';
   // console.log(`url = ${event.request.url}`);
 
-  if (event.request.url.indexOf(url) > -1){ // First Cache then Network strategy
+  if (event.request.url.indexOf(url) > -1) {
+    // First Cache then Network strategy
     // Useful when you need to fetch the latest version all the time
     console.log(`first if in fecth event listener :)`);
     event.respondWith(
-      fetch(event.request)
-            .then((res) => {
-              let clonedRes = res.clone();
+      fetch(event.request).then(res => {
+        let clonedRes = res.clone();
+        clearAllData('posts')
+          .then(() => {
+            return clonedRes.json();
+          })
+          .then(data => {
+            for (let key in data) {
+              writeData('posts', data[key]);
+            }
+          });
 
-              clonedRes.json()
-                .then((data) => {
-                    let dataArray = Object.keys(data).map((k) => data[k]);
-                    for (let key in data){
-                      writeData('posts', data[key])
-                    }
-                })
-              return res;
-            })
+        return res;
+      })
     );
-  }
-  else if (isInArray(event.request.url, STATIC_FILES)) { // CACHE ONLY strategy for static files
-    event.respondWith(
-      caches.match(event.request)
-    );
-  }
-  else { // Cache with Network fallback strategy
+  } else if (isInArray(event.request.url, STATIC_FILES)) {
+    // CACHE ONLY strategy for static files
+    event.respondWith(caches.match(event.request));
+  } else {
+    // Cache with Network fallback strategy
     event.respondWith(
       caches
         .match(event.request)
@@ -122,27 +124,30 @@ self.addEventListener('fetch', event => {
           if (response) {
             return response; // returning value from the cache
           } else {
-            return fetch(event.request).then(res => {
-              return caches.open(CACHE_DYNAMIC_NAME).then(cache => {
-                // trimCache(CACHE_DYNAMIC_NAME, 3);
-                cache.put(event.request.url, res.clone()); // Cloning the response is necessary because request and response streams can only be read once.
-                return res;
-              });
-            }).catch(err => {
-              console.error('dynamic fetch then cache', err);
-              return caches.open(CACHE_STATIC_NAME)
-                .then((cache) => {
-                  if (event.request.headers.get('accept').includes('text/html')){
+            return fetch(event.request)
+              .then(res => {
+                return caches.open(CACHE_DYNAMIC_NAME).then(cache => {
+                  // trimCache(CACHE_DYNAMIC_NAME, 3);
+                  cache.put(event.request.url, res.clone()); // Cloning the response is necessary because request and response streams can only be read once.
+                  return res;
+                });
+              })
+              .catch(err => {
+                console.error('dynamic fetch then cache', err);
+                return caches.open(CACHE_STATIC_NAME).then(cache => {
+                  if (
+                    event.request.headers.get('accept').includes('text/html')
+                  ) {
                     return cache.match('/offline.html');
                   }
-                })
-            })
+                });
+              });
           }
         })
         .catch(err => {
           console.error('Error in respondwith match', err);
         })
-    )
+    );
   }
 });
 
