@@ -53,6 +53,7 @@ function createCard(data) {
   cardTitle.style.backgroundImage = `url("${data.image}")`;
   cardTitle.style.backgroundSize = 'cover';
   cardTitle.style.height = '200px'; // 180px original
+  cardTitle.style.backgroundPosition = 'bottom'; // Or try 'center'
   cardWrapper.appendChild(cardTitle);
   var cardTitleTextElement = document.createElement('h2');
   cardTitleTextElement.className = 'mdl-card__title-text';
