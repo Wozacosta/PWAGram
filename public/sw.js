@@ -162,7 +162,7 @@ self.addEventListener('sync', event => {
     event.waitUntil(
       readAllData('sync-posts').then(data => {
         for (let dt of data) {
-          fetch(URL, {
+          fetch('https://us-central1-pwagram-882f7.cloudfunctions.net/storePostData', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -177,7 +177,10 @@ self.addEventListener('sync', event => {
           }).then(res => {
             console.log(`sent data !, res = `, res);
             if (res.ok){
-              deleteItemFromData('sync-posts', dt.id);
+              res.json()
+                .then((resData) => {
+                  deleteItemFromData('sync-posts', resData.id);
+                })
             }
           }).catch((err) => {
             console.error('Error while sending data ', err);
