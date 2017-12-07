@@ -37,3 +37,44 @@ window.addEventListener('beforeinstallprompt', (event) => {
   deferredPrompt = event;
   return false;
 });
+
+function displayConfirmNotification() {
+  if ('serviceWorker' in navigator){
+    let options = {
+      body: 'Your sw successfully subscribed to our notification service!',
+    };
+    navigator.serviceWorker.ready
+      .then((swreg) => {
+          swreg.showNotification('Successfully subscribed from sw', options)
+      });
+  }
+
+  // new Notification('Successfully subscribed', options);
+}
+
+function askForNotificationPermission() {
+  Notification.requestPermission().then((result) => {
+    if (result === 'denied') {
+      console.log('Permission wasn\'t granted. Allow a retry.');
+      return;
+    }
+    if (result === 'default') {
+      console.log('The permission request was dismissed.');
+      return;
+    }
+    // Do something with the granted permission.
+    // result = granted
+    console.log('The permission request was granted');
+    // TODO: hide btn
+    displayConfirmNotification();
+  });
+}
+
+let enableNotificationsButtons = document.querySelectorAll('.enable-notifications');
+
+if ('Notification' in window){ // the browser supports notifications
+  enableNotificationsButtons.forEach((btn) => {
+      btn.style.display = 'inline-block';
+      btn.addEventListener('click', askForNotificationPermission);
+  })
+}
