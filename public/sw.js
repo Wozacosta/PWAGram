@@ -191,4 +191,19 @@ self.addEventListener('sync', event => {
   }
 });
 
+self.addEventListener('notificationclick', (event) => {
+  let notification = event.notification;
+  let action = event.action;
+
+  console.log(notification);
+
+  if (action === 'confirm'){
+    console.log('confirm was chosen!');
+    notification.close();
+  }else {
+    console.log(action);
+    notification.close();
+  }
+})
+
 // https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers

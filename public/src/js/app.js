@@ -42,6 +42,17 @@ function displayConfirmNotification() {
   if ('serviceWorker' in navigator){
     let options = {
       body: 'Your sw successfully subscribed to our notification service!',
+      icon: '/src/images/icons/app-icon-96x96.png',
+      image: '/src/images/sf-boat.jpg',
+      lang: 'en-US',
+      vibrate: [100, 50, 200, 50, 400], // vibrationms pausems vibrations ms
+      badge: '/src/images/icons/app-icon-96x96.png', // recommended (becomes blackwhite icon in notif tray)
+      tag: 'confirm-notification', // same tags notifications will stack instead of spamming the user
+      renotify: true, // new notif of same tag won't vibrate and alert the user if set to false
+      actions: [
+        {action: 'confirm', title: 'okay', icon: '/src/images/icons/app-icon-96x96.png'},
+        {action: 'cancel', title: 'cancel', icon: '/src/images/icons/app-icon-96x96.png'},
+      ]
     };
     navigator.serviceWorker.ready
       .then((swreg) => {
