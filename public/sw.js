@@ -206,4 +206,29 @@ self.addEventListener('notificationclick', (event) => {
   }
 })
 
+self.addEventListener('notificationclose', (event) => {
+  console.log('notification was closed', event);
+})
+
+self.addEventListener('push', (event) => {
+  console.log('push notification received', event);
+  let data = {
+    title: 'Nouveau!',
+    content: 'SMTHNG NEW HAPPENED'
+  };
+  if (event.data){
+    data = JSON.parse(event.data.text());
+    console.log(' now data = ', data);
+  }
+
+  let options = {
+    body: data.content,
+    icon: '/src/images/icons/app-icon-96x96.png',
+    badge: '/src/images/icons/app-icon-96x96.png'
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
 // https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers

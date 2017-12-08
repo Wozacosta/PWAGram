@@ -56,11 +56,63 @@ function displayConfirmNotification() {
     };
     navigator.serviceWorker.ready
       .then((swreg) => {
-          swreg.showNotification('Successfully subscribed from sw', options)
+          swreg.showNotification('Successfully subscribed', options)
       });
   }
 
   // new Notification('Successfully subscribed', options);
+}
+
+function configurePushSub() {
+  console.log('in configurePushSub');
+  if (!('serviceWorker' in navigator)) {
+    console.error('no serviceworker in navigator :(');
+    return;
+  }
+  let reg;
+  navigator.serviceWorker.ready
+    .then((swreg) => {
+      console.log('configurepushsub sw ready');
+      reg = swreg;
+      return swreg.pushManager.getSubscription(); // returns any existing subscription
+    })
+    .then((sub) => {
+      console.log('configurepushsub got subscription list');
+      if (sub === null){
+        // createa new subscription
+        const vapidPublicKey = 'BKbAEj2As7mzFqczoYdnnYonUOgfByDNAhPrO-zJsE2Bimbc7IWXf_HFFpumoetHkvBY31mnM3bu9xYiXr2lf8M';
+        let convertedVapidPublicKey = urlBase64ToUint8Array(vapidPublicKey);
+        return reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidPublicKey,
+        });
+      }else {
+        console.log(' we have a subscription already !')
+        // we have a subscription
+      }
+    })
+    .then((newSub) => {
+      console.log('configurepushsub made new subscription');
+      return fetch('https://pwagram-882f7.firebaseio.com/subscriptions.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(newSub)
+      })
+    })
+    .then((res) => {
+      console.log('configurepushsub finished fetching')
+      console.log(res);
+      if (res.ok){
+        displayConfirmNotification();
+      }
+    })
+    .catch((err) => {
+      console.error('configurepushsub error')
+      console.error(err);
+    })
 }
 
 function askForNotificationPermission() {
@@ -77,13 +129,14 @@ function askForNotificationPermission() {
     // result = granted
     console.log('The permission request was granted');
     // TODO: hide btn
-    displayConfirmNotification();
+    // displayConfirmNotification();
+    configurePushSub();
   });
 }
 
 let enableNotificationsButtons = document.querySelectorAll('.enable-notifications');
 
-if ('Notification' in window){ // the browser supports notifications
+if ('Notification' in window && 'serviceWorker' in navigator){ // the browser supports notifications
   enableNotificationsButtons.forEach((btn) => {
       btn.style.display = 'inline-block';
       btn.addEventListener('click', askForNotificationPermission);
