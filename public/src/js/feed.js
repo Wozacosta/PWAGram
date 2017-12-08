@@ -7,11 +7,21 @@ var sharedMomentsArea = document.querySelector('#shared-moments');
 let form = document.querySelector('form');
 let titleInput = document.querySelector('#title');
 let locationInput = document.querySelector('#location');
+let videoPlayer = document.querySelector('#player');
+let canvasElement = document.querySelector('#canvas');
+let captureButton = document.querySelector('#capture-btn');
+let imagePicker = document.querySelector('#image-picker');
+let imagePickerArea = document.querySelector('#pick-image');
+
+function initializeMedia() {
+
+}
 
 function openCreatePostModal() {
   // createPostArea.style.display = 'block';
   // setTimeout(() => {
   createPostArea.style.transform = 'translateY(0)';
+  initializeMedia();
   // }, 1)
 
   if (deferredPrompt) {
