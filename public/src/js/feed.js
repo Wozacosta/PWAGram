@@ -100,7 +100,10 @@ imagePicker.addEventListener('change', (event) => {
 function openCreatePostModal() {
   // createPostArea.style.display = 'block';
   // setTimeout(() => {
-  createPostArea.style.transform = 'translateY(0)';
+  setTimeout(() => {
+    createPostArea.style.transform = 'translateY(0)';
+  }, 1);
+
   initializeMedia();
   initializeLocation();
   // }, 1)
@@ -120,7 +123,7 @@ function openCreatePostModal() {
 }
 
 function closeCreatePostModal() {
-  createPostArea.style.transform = 'translateY(100vh)';
+
   videoPlayer.style.display = 'none';
   imagePickerArea.style.display = 'none';
   canvasElement.style.display = 'none';
@@ -131,6 +134,9 @@ function closeCreatePostModal() {
       track.stop();
     })
   }
+  setTimeout(() => {
+    createPostArea.style.transform = 'translateY(100vh)';
+  }, 1);
   // setTimeout(() => {
   //   createPostArea.style.display = 'none';
   // },300);
