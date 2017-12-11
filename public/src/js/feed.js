@@ -126,6 +126,11 @@ function closeCreatePostModal() {
   canvasElement.style.display = 'none';
   locationBtn.style.display = 'inline';
   locationLoader.style.display = 'none';
+  if (videoPlayer.srcObject){
+    videoPlayer.srcObject.getVideoTracks().forEach((track) => {
+      track.stop();
+    })
+  }
   // setTimeout(() => {
   //   createPostArea.style.display = 'none';
   // },300);
