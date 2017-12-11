@@ -12,6 +12,7 @@ let canvasElement = document.querySelector('#canvas');
 let captureButton = document.querySelector('#capture-btn');
 let imagePicker = document.querySelector('#image-picker');
 let imagePickerArea = document.querySelector('#pick-image');
+let picture;
 
 function initializeMedia() {
   if(!('mediaDevices' in navigator)){
@@ -50,6 +51,7 @@ captureButton.addEventListener('click', (event) => {
   videoPlayer.srcObject.getVideoTracks().forEach((track) => {
     track.stop();
   });
+  picture = dataURItoBlob(canvasElement.toDataURL());
 });
 
 function openCreatePostModal() {
@@ -170,18 +172,16 @@ if ('indexedDB' in window) {
 }
 
 function sendData() {
+  let postData = new FormData();
+  postData.append('id', new Date().toISOString());
+  postData.append('title', titleInput.value);
+  postData.append('location', locationInput.value);
+  postData.append('file', picture, dt.id + '.png'); // third argument = overwrite title of image (we could check mimetype alternatively to be careful)
+
+
   fetch('https://us-central1-pwagram-882f7.cloudfunctions.net/storePostData', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify({
-      id: new Date().toISOString(),
-      title: titleInput.value,
-      location: locationInput.value,
-      image: "https://firebasestorage.googleapis.com/v0/b/pwagram-882f7.appspot.com/o/sf-boat.jpg?alt=media&token=523a3577-84a3-4ff0-80a9-6f25f0f5cf31"
-    })
+    body: postData,
   })
     .then((res) => {
       console.log(`sent data !, res = `, res);
@@ -205,6 +205,7 @@ form.addEventListener('submit', event => {
         id: new Date().toISOString(),
         title: titleInput.value,
         location: locationInput.value,
+        picture: picture,
       };
       writeData('sync-posts', post)
         .then(() => {

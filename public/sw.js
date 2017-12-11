@@ -19,6 +19,7 @@ const STATIC_FILES = [
   '/index.html',
   '/offline.html',
   '/src/js/app.js',
+  '/src/js/utility.js',
   '/src/js/feed.js',
   '/src/js/idb.js',
   '/src/js/promise.js', // no value in storing polyfills here, browser that needs them won't be able to access cache anyway...
@@ -162,18 +163,16 @@ self.addEventListener('sync', event => {
     event.waitUntil(
       readAllData('sync-posts').then(data => {
         for (let dt of data) {
+          let postData = new FormData();
+          postData.append('id', dt.id);
+          postData.append('title', dt.title);
+          postData.append('location', dt.location);
+          postData.append('file', dt.picture, dt.id + '.png'); // third argument = overwrite title of image (we could check mimetype alternatively to be careful)
+
+
           fetch('https://us-central1-pwagram-882f7.cloudfunctions.net/storePostData', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: JSON.stringify({
-              id: dt.id,
-              title: dt.title,
-              location: dt.location,
-              image:"https://firebasestorage.googleapis.com/v0/b/pwagram-882f7.appspot.com/o/sf-boat.jpg?alt=media&token=523a3577-84a3-4ff0-80a9-6f25f0f5cf31",
-            }),
+            body: postData,
           }).then(res => {
             console.log(`sent data !, res = `, res);
             if (res.ok){
