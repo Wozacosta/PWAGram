@@ -15,9 +15,10 @@ let imagePickerArea = document.querySelector('#pick-image');
 let picture;
 let locationBtn = document.querySelector('#location-btn');
 let locationLoader = document.querySelector('#location-loader');
-let fetchedLocation;
+let fetchedLocation = {lat: 0, lng: 0};
 
 locationBtn.addEventListener('click', (event) => {
+  let sawAlert = false;
   locationBtn.style.display = 'none';
   locationLoader.style.display = 'block';
   navigator.geolocation.getCurrentPosition((position) => {
@@ -40,8 +41,12 @@ locationBtn.addEventListener('click', (event) => {
     console.error(err);
     locationBtn.style.display = 'inline';
     locationLoader.style.display = 'none';
-    alert(`couldn't fetch location, please enter manually'`);
-    fetchedLocation = {lat:null, lng: null};
+
+    fetchedLocation = {lat:0, lng: 0};
+    if (!sawAlert){
+      alert(`couldn't fetch location, please enter manually'`);
+      sawAlert = true;
+    }
   }, {
     timeout: 7000, // 7s to find position before failing
   })
@@ -129,6 +134,7 @@ function closeCreatePostModal() {
   canvasElement.style.display = 'none';
   locationBtn.style.display = 'inline';
   locationLoader.style.display = 'none';
+  captureButton.style.display = 'inline';
   if (videoPlayer.srcObject){
     videoPlayer.srcObject.getVideoTracks().forEach((track) => {
       track.stop();
