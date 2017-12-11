@@ -14,7 +14,31 @@ let imagePicker = document.querySelector('#image-picker');
 let imagePickerArea = document.querySelector('#pick-image');
 
 function initializeMedia() {
+  if(!('mediaDevices' in navigator)){
+    navigator.mediaDevices = {};
+  }
+  if (!('getUserMedia' in navigator.mediaDevices)){
+    navigator.mediaDevices.getUserMedia = (constraints) => {
+      let getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+      if (!getUserMedia) {
+        return Promise.reject(new Error('getUserMedia is not implemented!'));
+      }
+      return new Promise((resolve, reject) => {
+        getUserMedia.call(navigator, constraints, resolve, reject);
+      });
+    }
+  }
 
+  navigator.mediaDevices.getUserMedia({video: true}) // audio : true
+    .then((stream) => {
+      videoPlayer.srcObject = stream;
+      videoPlayer.style.display = 'block';
+    })
+    .catch((err) => {
+      console.error(err);
+      // show imagepicker as a fallback
+      imagePickerArea.style.display = 'block';
+    })
 }
 
 function openCreatePostModal() {
@@ -40,6 +64,9 @@ function openCreatePostModal() {
 
 function closeCreatePostModal() {
   createPostArea.style.transform = 'translateY(100vh)';
+  videoPlayer.style.display = 'none';
+  imagePickerArea.style.display = 'none';
+  canvasElement.style.display = 'none';
   // setTimeout(() => {
   //   createPostArea.style.display = 'none';
   // },300);
