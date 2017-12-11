@@ -40,6 +40,17 @@ function initializeMedia() {
       imagePickerArea.style.display = 'block';
     })
 }
+// get stream from video element, send it to canvas which will automatically snapshot it
+captureButton.addEventListener('click', (event) => {
+  canvasElement.style.display = 'block';
+  videoPlayer.style.display = 'none';
+  captureButton.style.display = 'none';
+  let context = canvasElement.getContext('2d') // init how we want to draw on the canvas
+  context.drawImage(videoPlayer, 0, 0, canvas.width, videoPlayer.videoHeight / (videoPlayer.videoWidth / canvas.width));
+  videoPlayer.srcObject.getVideoTracks().forEach((track) => {
+    track.stop();
+  });
+});
 
 function openCreatePostModal() {
   // createPostArea.style.display = 'block';
