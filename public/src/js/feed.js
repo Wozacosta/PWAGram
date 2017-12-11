@@ -13,6 +13,45 @@ let captureButton = document.querySelector('#capture-btn');
 let imagePicker = document.querySelector('#image-picker');
 let imagePickerArea = document.querySelector('#pick-image');
 let picture;
+let locationBtn = document.querySelector('#location-btn');
+let locationLoader = document.querySelector('#location-loader');
+let fetchedLocation;
+
+locationBtn.addEventListener('click', (event) => {
+  locationBtn.style.display = 'none';
+  locationLoader.style.display = 'block';
+  navigator.geolocation.getCurrentPosition((position) => {
+    locationBtn.style.display = 'inline';
+    locationLoader.style.display = 'none';
+    console.log(position);
+    fetchedLocation = {lat:position.coords.latitude, lng: position.coords.longitude};
+    fetch(`https://www.mapquestapi.com/geocoding/v1/reverse?key=2VL5nYLwpFqkWt3aE9u2JEVBid0fWTaU&location=${fetchedLocation.lat}%2C${fetchedLocation.lng}&outFormat=json&thumbMaps=false`)
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => {
+        console.log(data);
+        locationInput.value = data.results[0].locations[0].adminArea5 + ', ' + data.results[0].locations[0].adminArea3 + ', ' + data.results[0].locations[0].adminArea1; // TODO: use google geocoding api
+        document.querySelector('#manual-location').classList.add('is-focused');
+      })
+
+
+  }, (err) => {
+    console.error(err);
+    locationBtn.style.display = 'inline';
+    locationLoader.style.display = 'none';
+    alert(`couldn't fetch location, please enter manually'`);
+    fetchedLocation = {lat:null, lng: null};
+  }, {
+    timeout: 7000, // 7s to find position before failing
+  })
+});
+
+function initializeLocation() {
+  if (!('geolocation' in navigator)){
+    locationBtn.style.display = 'none';
+  }
+}
 
 function initializeMedia() {
   if(!('mediaDevices' in navigator)){
@@ -63,6 +102,7 @@ function openCreatePostModal() {
   // setTimeout(() => {
   createPostArea.style.transform = 'translateY(0)';
   initializeMedia();
+  initializeLocation();
   // }, 1)
 
   if (deferredPrompt) {
@@ -84,6 +124,8 @@ function closeCreatePostModal() {
   videoPlayer.style.display = 'none';
   imagePickerArea.style.display = 'none';
   canvasElement.style.display = 'none';
+  locationBtn.style.display = 'inline';
+  locationLoader.style.display = 'none';
   // setTimeout(() => {
   //   createPostArea.style.display = 'none';
   // },300);
@@ -180,6 +222,8 @@ function sendData() {
   postData.append('id', new Date().toISOString());
   postData.append('title', titleInput.value);
   postData.append('location', locationInput.value);
+  postData.append('rawLocationLat', fetchedLocation.lat);
+  postData.append('rawLocationLng', fetchedLocation.lng);
   postData.append('file', picture, dt.id + '.png'); // third argument = overwrite title of image (we could check mimetype alternatively to be careful)
 
 
@@ -209,6 +253,7 @@ form.addEventListener('submit', event => {
         id: new Date().toISOString(),
         title: titleInput.value,
         location: locationInput.value,
+        rawLocation: fetchedLocation,
         picture: picture,
       };
       writeData('sync-posts', post)

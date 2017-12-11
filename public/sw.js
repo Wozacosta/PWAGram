@@ -11,6 +11,7 @@ importScripts() and self.importScripts() are effectively equivalent
 importScripts('/src/js/idb.js');
 importScripts('/src/js/utility.js');
 
+
 // lifecycle events
 const CACHE_STATIC_NAME = 'static-v21';
 const CACHE_DYNAMIC_NAME = 'dynamic-v7';
@@ -167,6 +168,8 @@ self.addEventListener('sync', event => {
           postData.append('id', dt.id);
           postData.append('title', dt.title);
           postData.append('location', dt.location);
+          postData.append('rawLocationLat', dt.rawLocation.lat);
+          postData.append('rawLocationLng', dt.rawLocation.lng);
           postData.append('file', dt.picture, dt.id + '.png'); // third argument = overwrite title of image (we could check mimetype alternatively to be careful)
 
 
