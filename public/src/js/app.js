@@ -17,7 +17,7 @@ if (!window.Promise){
 if ('serviceWorker' in navigator) {
   // console.log(`serviceWorkers supported in navigator`, navigator);
   navigator.serviceWorker
-    .register('/sw.js') // The scope parameter is optional, and can be used to specify the subset of your content that you want the service worker to control
+    .register('/service-worker.js') // The scope parameter is optional, and can be used to specify the subset of your content that you want the service worker to control
     .then(() => {
       console.log('Service Worker registered !');
       // A single service worker can control many pages.
